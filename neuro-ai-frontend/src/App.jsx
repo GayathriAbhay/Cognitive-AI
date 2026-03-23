@@ -1,120 +1,78 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [messages, setMessages] = useState([
+    { id: 1, role: 'assistant', text: "Welcome! I'm your Neuro-AI tutor. Ready to start today's lesson?" }
+  ]);
+  const [input, setInput] = useState('');
+  const [fontSize, setFontSize] = useState(1);
+  const [isContrast, setIsContrast] = useState(false);
+  const scrollRef = useRef(null);
+
+  // Apply accessibility settings to the document root
+  useEffect(() => {
+    document.documentElement.style.setProperty('--font-scale', fontSize);
+    document.documentElement.setAttribute('data-theme', isContrast ? 'contrast' : 'light');
+  }, [fontSize, isContrast]);
+
+  const handleSend = (e) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    
+    const userMsg = { id: Date.now(), role: 'user', text: input };
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
+    
+    // Simulate AI Response
+    setTimeout(() => {
+      setMessages(prev => [...prev, { 
+        id: Date.now() + 1, 
+        role: 'assistant', 
+        text: "That's a great question. Let's break that down into three simple steps..." 
+      }]);
+    }, 1000);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div id="root" className="app-shell">
+      {/* Accessibility Controls */}
+      <header className="a11y-toolbar" role="toolbar" aria-label="Accessibility Settings">
+        <div className="btn-group">
+          <button onClick={() => setFontSize(f => Math.min(f + 0.1, 1.4))} aria-label="Increase text size">A+</button>
+          <button onClick={() => setFontSize(f => Math.max(f - 0.1, 0.8))} aria-label="Decrease text size">A-</button>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
+        <button onClick={() => setIsContrast(!isContrast)}>
+          {isContrast ? 'Light Mode' : 'High Contrast'}
         </button>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
+      {/* Main Chat/Lesson Area */}
+      <main className="chat-window" aria-live="polite">
+        {messages.map((msg) => (
+          <article key={msg.id} className={`message-bubble ${msg.role}`}>
+            <span className="sr-only">{msg.role === 'user' ? 'You said:' : 'Assistant said:'}</span>
+            <p>{msg.text}</p>
+          </article>
+        ))}
+        <div ref={scrollRef} />
+      </main>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      {/* Interaction Bar */}
+      <footer className="input-container">
+        <form onSubmit={handleSend} className="input-form">
+          <input 
+            type="text" 
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask me anything..."
+            aria-label="Message input"
+          />
+          <button type="submit" className="send-btn">Send</button>
+          <button type="button" className="voice-btn" aria-label="Use voice input">🎤</button>
+        </form>
+      </footer>
+    </div>
   )
 }
 

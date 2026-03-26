@@ -1,30 +1,40 @@
-import re
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
 
-def remove_duplicates(steps):
-    return list(dict.fromkeys(steps))
+load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def break_task(text):
-    """
-    Generate learning steps using the SHARED model from the app.
-    """
+    print("USING OPENAI FOR TASK BREAKDOWN")
+
     try:
-        from app import shared_model as model, shared_tokenizer as tokenizer
-        
-        if model is None or tokenizer is None:
-            return [f"Step 1: Understand what {text} means.", "Step 2: Learn the key concepts."]
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"""
+Break this concept into 3-5 simple learning steps:
 
-        prompt = f"Break down the concept of {text} into a logical sequence of simple steps."
-        inputs = tokenizer(prompt, return_tensors="pt")
-        outputs = model.generate(**inputs, max_new_tokens=150)
-        result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+{text}
 
-        steps = re.split(r'\d+\.|\*|-', result)
-        steps = [s.strip() for s in steps if s.strip() and len(s) > 3]
+Rules:
+- Keep steps short
+- No repetition
+- Numbered format (1. 2. 3.)
+"""
+                }
+            ],
+            temperature=0.3
+        )
 
-        if not steps:
-            steps = [s.strip() for s in result.split('.') if len(s.strip()) > 5]
-            
-        return steps if steps else [result]
+        result = response.choices[0].message.content.strip()
+
+        # Convert to list
+        steps = [s.strip() for s in result.split("\n") if s.strip()]
+
+        return steps
     except Exception as e:
         print(f"ERROR in break_task: {e}")
         return [f"Understand the basics of {text}.", "Practice with examples.", "Review and apply knowledge."]

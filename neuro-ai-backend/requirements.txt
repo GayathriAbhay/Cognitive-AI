@@ -10,3 +10,4 @@ tqdm
 flask-cors
 PyPDF2
 safetensors
+openai

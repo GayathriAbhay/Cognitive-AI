@@ -28,7 +28,7 @@ const ChatInterface = (props) => {
     if (!file) return;
 
     setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: `📁 Uploaded: ${file.name}` }]);
-    
+
     const formData = new FormData();
     formData.append('file', file);
 
@@ -45,13 +45,13 @@ const ChatInterface = (props) => {
       if (!response.ok) throw new Error('Failed to process PDF');
 
       const data = await response.json();
-      
+
       setMessages(prev => [
         ...prev,
-        { 
-          id: Date.now() + 1, 
-          sender: 'bot', 
-          text: data.personalized || data.simplified 
+        {
+          id: Date.now() + 1,
+          sender: 'bot',
+          text: data.personalized || data.simplified
         }
       ]);
     } catch (error) {
@@ -85,7 +85,7 @@ const ChatInterface = (props) => {
       if (!response.ok) throw new Error('Failed to fetch AI response');
 
       const data = await response.json();
-      
+      console.log("🔥 FULL BACKEND RESPONSE:", data);
       // Update Debug Info
       if (typeof props.setDebugData === 'function') {
         props.setDebugData({
@@ -96,26 +96,24 @@ const ChatInterface = (props) => {
         });
       }
 
-      const botResponse = (studyMethod === 'step-by-step' && data.personalized) 
-        ? data.personalized 
-        : data.simplified;
+      const botResponse = data.simplified || data.personalized;
 
       setMessages(prev => [
         ...prev,
-        { 
-          id: Date.now() + 1, 
-          sender: 'bot', 
-          text: botResponse 
+        {
+          id: Date.now() + 1,
+          sender: 'bot',
+          text: botResponse
         }
       ]);
     } catch (error) {
       console.error("AI Request Error:", error);
       setMessages(prev => [
         ...prev,
-        { 
-          id: Date.now() + 1, 
-          sender: 'bot', 
-          text: "I'm sorry, I'm having trouble connecting to the AI brain right now. Please try again! 🧠" 
+        {
+          id: Date.now() + 1,
+          sender: 'bot',
+          text: "I'm sorry, I'm having trouble connecting to the AI brain right now. Please try again! 🧠"
         }
       ]);
     }
@@ -137,7 +135,7 @@ const ChatInterface = (props) => {
             <option value="pathway">Learning Path</option>
           </select>
         </div>
-        
+
         <div className="file-section">
           <input type="file" id="pdf-upload" accept=".pdf" hidden onChange={handleFileUpload} />
           <label htmlFor="pdf-upload" className="upload-btn">📁 Upload PDF</label>
@@ -153,7 +151,7 @@ const ChatInterface = (props) => {
       </div>
 
       {/* Reusable Input Component */}
-      <InputBox 
+      <InputBox
         input={input}
         setInput={setInput}
         sendMessage={sendMessage}

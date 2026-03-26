@@ -1,25 +1,42 @@
-from dotenv import load_dotenv; load_dotenv()
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+print("OPENAI VERSION RUNNING")
 
 def process_text(text):
-    """
-    Simplify text using the SHARED model from the app.
-    """
+    print("USING OPENAI API")
+    print(f"DEBUG: {text}")
+
     try:
-        # Use app-level shared model
-        from app import shared_model as model, shared_tokenizer as tokenizer
-        
-        if model is None or tokenizer is None:
-            return f"To understand {text}, focus on its core idea."
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful teacher who explains concepts clearly and correctly."
+                },
+                {
+                    "role": "user",
+                    "content": f"""
+What is "{text}"?
 
-        prompt = f"Explain the concept of {text} in simple terms for a beginner."
-        inputs = tokenizer(prompt, return_tensors="pt")
-        outputs = model.generate(**inputs, max_new_tokens=150)
-        result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+Explain clearly for a beginner.
 
-        if not result or len(result) < 10:
-            return f"To understand {text}, we should focus on its main purpose and how it works step by step."
-
-        return result
+Rules:
+- No repetition
+- No circular definitions
+- Use simple English
+- Answer in 2 sentences
+"""
+                }
+            ],
+            temperature=0.3
+        )
+        return response.choices[0].message.content.strip()
     except Exception as e:
         print(f"ERROR in process_text: {e}")
-        return f"Here is a simplified view of {text}: focus on what it does and why it matters."
+        return f"A {text} is a fundamental concept that is essential to understand for its various applications in everyday life."

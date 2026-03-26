@@ -3,7 +3,7 @@ import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognitio
 import MessageBubble from './MessageBubble';
 import InputBox from './InputBox';
 
-const ChatInterface = () => {
+const ChatInterface = (props) => {
   const [messages, setMessages] = useState([
     { id: 1, sender: 'bot', text: "Hi! I'm your AI learning assistant. Upload a PDF or choose a study method to begin! 😊" }
   ]);
@@ -23,26 +23,102 @@ const ChatInterface = () => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = (msgText) => {
-    const textToSubmit = msgText || input;
-    if (!textToSubmit.trim()) return;
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-    // Add User Message
-    setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: textToSubmit }]);
-    setInput('');
-    resetTranscript();
+    setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: `📁 Uploaded: ${file.name}` }]);
+    
+    const formData = new FormData();
+    formData.append('file', file);
 
-    // AI Response Logic (Neurodivergent-friendly breakdown)
-    setTimeout(() => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch('http://localhost:5000/ai/upload-pdf', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) throw new Error('Failed to process PDF');
+
+      const data = await response.json();
+      
       setMessages(prev => [
         ...prev,
         { 
           id: Date.now() + 1, 
           sender: 'bot', 
-          text: `Using the ${studyMethod} method: Let me simplify that for you into smaller steps...` 
+          text: data.personalized || data.simplified 
         }
       ]);
-    }, 1000);
+    } catch (error) {
+      console.error(error);
+      setMessages(prev => [...prev, { id: Date.now() + 2, sender: 'bot', text: "Error processing the PDF. Please try again." }]);
+    }
+  };
+
+  const sendMessage = async (msgText) => {
+    const textToSubmit = msgText || input;
+    if (!textToSubmit.trim()) return;
+
+    setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: textToSubmit }]);
+    setInput('');
+    resetTranscript();
+
+    const startTime = Date.now();
+    const payload = { text: textToSubmit };
+
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch('http://localhost:5000/ai/process', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch AI response');
+
+      const data = await response.json();
+      
+      // Update Debug Info
+      if (typeof props.setDebugData === 'function') {
+        props.setDebugData({
+          request: payload,
+          response: data,
+          latency: Date.now() - startTime,
+          profile: studyMethod
+        });
+      }
+
+      const botResponse = (studyMethod === 'step-by-step' && data.personalized) 
+        ? data.personalized 
+        : data.simplified;
+
+      setMessages(prev => [
+        ...prev,
+        { 
+          id: Date.now() + 1, 
+          sender: 'bot', 
+          text: botResponse 
+        }
+      ]);
+    } catch (error) {
+      console.error("AI Request Error:", error);
+      setMessages(prev => [
+        ...prev,
+        { 
+          id: Date.now() + 1, 
+          sender: 'bot', 
+          text: "I'm sorry, I'm having trouble connecting to the AI brain right now. Please try again! 🧠" 
+        }
+      ]);
+    }
   };
 
   if (!browserSupportsSpeechRecognition) {
@@ -63,7 +139,7 @@ const ChatInterface = () => {
         </div>
         
         <div className="file-section">
-          <input type="file" id="pdf-upload" accept=".pdf" hidden />
+          <input type="file" id="pdf-upload" accept=".pdf" hidden onChange={handleFileUpload} />
           <label htmlFor="pdf-upload" className="upload-btn">📁 Upload PDF</label>
         </div>
       </header>

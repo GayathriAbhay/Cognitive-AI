@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from ..models import Preference, History, db
+from ..models import Student, Preference, History, db
 
 student_bp = Blueprint('student', __name__)
 
@@ -80,3 +80,24 @@ def add_progress():
         "adaptation_logic": adjustment_message,
         "new_difficulty": prefs.difficulty_level
     }), 201
+
+@student_bp.route('/profile', methods=['GET'])
+@jwt_required()
+def get_profile():
+    student_id = int(get_jwt_identity())
+    student = Student.query.get(student_id)
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+    
+    prefs = Preference.query.filter_by(student_id=student_id).first()
+    
+    return jsonify({
+        "name": student.name,
+        "email": student.email,
+        "preferences": {
+            "font_size": prefs.font_size if prefs else "medium",
+            "contrast_mode": prefs.contrast_mode if prefs else "standard",
+            "input_mode": prefs.input_mode if prefs else "text",
+            "difficulty_level": prefs.difficulty_level if prefs else "beginner"
+        }
+    }), 200

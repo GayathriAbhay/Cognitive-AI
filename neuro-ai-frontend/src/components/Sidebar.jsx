@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Sidebar = ({ activeTab, setActiveTab, fontSize, setFontSize, isContrast, setIsContrast }) => {
+const Sidebar = ({ activeTab, setActiveTab, fontSize, setFontSize, isContrast, setIsContrast, onLogout, userName, setIsDebugOpen }) => {
   
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -57,12 +57,20 @@ const Sidebar = ({ activeTab, setActiveTab, fontSize, setFontSize, isContrast, s
             </button>
           </div>
         </div>
+
+        <button 
+          className="debug-toggle-btn" 
+          onClick={() => setIsDebugOpen(true)}
+          title="Show Technical AI Logs"
+        >
+          🔍 View AI Process
+        </button>
         
         <div className="user-short-profile">
-          <div className="mini-avatar">G</div>
+          <div className="mini-avatar">{userName ? userName[0].toUpperCase() : 'U'}</div>
           <div className="user-info">
-            <span className="user-name">Gayathri</span>
-            <span className="user-status">Online</span>
+            <span className="user-name">{userName}</span>
+            <button className="logout-link" onClick={onLogout}>Log Out</button>
           </div>
         </div>
       </div>

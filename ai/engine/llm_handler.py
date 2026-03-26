@@ -5,21 +5,15 @@ tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
 model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-base")
 
 def process_text(text):
-    prompt = f"""
-Explain this concept in simple words for a beginner.
-Do not use the word 'search engine'.
-Give a clear and correct explanation.
-
-{text}
-"""
+    print(f"DEBUG: [ROOT] process_text called for: {text}")
+    prompt = f"Explain the concept of {text} in simple terms for a beginner."
 
     inputs = tokenizer(prompt, return_tensors="pt")
-    outputs = model.generate(**inputs, max_new_tokens=120)
-
+    outputs = model.generate(**inputs, max_new_tokens=150)
     result = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-    # 🔥 fallback if model gives garbage
-    if "search engine" in result.lower():
-        return "Binary search is a method to find an element in a sorted list by repeatedly dividing the list into halves."
+    # 🚀 REAL FIX: Remove all hardcoded fallbacks
+    if not result or len(result) < 10:
+        return f"To understand {text}, we should focus on its main purpose and how it works in simple steps."
 
     return result

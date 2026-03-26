@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Dashboard = () => {
+const Dashboard = ({ userName }) => {
   const previousLessons = [
     { id: 1, title: "Introduction to React", date: "2024-03-20", status: "Completed" },
     { id: 2, title: "Understanding Hooks", date: "2024-03-22", status: "In Progress" },
@@ -9,7 +9,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
-        <h1>Welcome Back, Gayathri</h1>
+        <h1>Welcome Back, {userName}</h1>
         <p>Your learning journey is 65% complete this week.</p>
       </header>
 

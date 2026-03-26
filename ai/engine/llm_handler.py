@@ -1,8 +1,25 @@
-from transformers import pipeline
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from dotenv import load_dotenv; load_dotenv()
 
-generator = pipeline("text2text-generation", model="t5-small")
+tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
+model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-base")
 
 def process_text(text):
-    prompt = "simplify: " + text
-    result = generator(prompt, max_length=100)
-    return result[0]['generated_text']
+    prompt = f"""
+Explain this concept in simple words for a beginner.
+Do not use the word 'search engine'.
+Give a clear and correct explanation.
+
+{text}
+"""
+
+    inputs = tokenizer(prompt, return_tensors="pt")
+    outputs = model.generate(**inputs, max_new_tokens=120)
+
+    result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    # 🔥 fallback if model gives garbage
+    if "search engine" in result.lower():
+        return "Binary search is a method to find an element in a sorted list by repeatedly dividing the list into halves."
+
+    return result

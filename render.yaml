@@ -17,7 +17,7 @@ services:
         sync: false # Set this in the Render Dashboard
 
   # Frontend Static Site
-  - type: static
+  - type: web
     name: cogni-frontend
     runtime: node
     rootDir: neuro-ai-frontend

@@ -4,12 +4,10 @@ flask-jwt-extended
 flask-migrate
 werkzeug
 python-dotenv
-transformers
-torch
-tqdm
 flask-cors
 PyPDF2
-safetensors
 openai
 groq
 pycryptodome
+gunicorn
+psycopg2-binary

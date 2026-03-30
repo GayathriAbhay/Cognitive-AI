@@ -44,7 +44,8 @@ function App() {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch('http://localhost:5000/student/profile', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/student/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();

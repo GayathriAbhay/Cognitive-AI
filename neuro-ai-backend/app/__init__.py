@@ -5,12 +5,17 @@ from flask_cors import CORS
 
 db = SQLAlchemy()
 
+import os
+
 def create_app():
     app = Flask(__name__)
     CORS(app) 
     
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///assistant.db'
-    app.config['JWT_SECRET_KEY'] = 'this-is-a-very-secure-secret-key-12345'
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///assistant.db')
+    if app.config['SQLALCHEMY_DATABASE_URI'].startswith("postgres://"):
+        app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace("postgres://", "postgresql://", 1)
+        
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'default-dev-secret-123')
     
     db.init_app(app)
     JWTManager(app)

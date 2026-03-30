@@ -18,7 +18,8 @@ const ProgressReport = () => {
     const fetchReport = async () => {
       try {
         const token = localStorage.getItem('access_token');
-        const res = await fetch('http://localhost:5000/student/progress-report', {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const res = await fetch(`${API_URL}/student/progress-report`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (cancelled) return;

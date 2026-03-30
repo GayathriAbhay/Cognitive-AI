@@ -52,7 +52,8 @@ const ChatInterface = (props) => {
 
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch('http://localhost:5000/ai/process', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/ai/process`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -127,7 +128,8 @@ const ChatInterface = (props) => {
     const token = localStorage.getItem('access_token');
 
     try {
-      const response = await fetch('http://localhost:5000/ai/upload-pdf', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/ai/upload-pdf`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

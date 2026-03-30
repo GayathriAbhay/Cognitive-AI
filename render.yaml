@@ -14,15 +14,15 @@ services:
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: GROQ_API_KEY
-        sync: false # Set this in the Render Dashboard
+        sync: false
 
-  # Frontend Static Site
+  # Frontend Web Service (Vite)
   - type: web
     name: cogni-frontend
     runtime: node
     rootDir: neuro-ai-frontend
     buildCommand: npm install && npm run build
-    staticPublishDir: dist
+    startCommand: npm run preview
     envVars:
       - key: VITE_API_URL
         fromService:

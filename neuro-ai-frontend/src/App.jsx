@@ -1,40 +1,50 @@
-import { useState, useEffect } from 'react'
-import Sidebar from './components/Sidebar'
-import Dashboard from './components/Dashboard'
+import { useState, useEffect, useRef } from 'react'
+import Navbar from './components/Navbar'
+import Home from './pages/Home'
+import Features from './pages/Features'
 import ChatInterface from './components/ChatInterface'
 import Profile from './components/Profile'
 import Auth from './components/Auth'
+import Onboarding from './components/Onboarding'
+import Footer from './components/Footer'
 import './App.css'
 
 import DebugPanel from './components/DebugPanel'
+import ProgressReport from './components/ProgressReport'
 
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard'); 
+  const [activeTab, setActiveTab] = useState('home'); 
   const [token, setToken] = useState(localStorage.getItem('access_token'));
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   
   // Debug State
   const [debugData, setDebugData] = useState({ request: {}, response: {}, profile: 'default', latency: 0 });
   const [isDebugOpen, setIsDebugOpen] = useState(false);
 
-  // Accessibility State
-  const [fontSize, setFontSize] = useState(1);
-  const [isContrast, setIsContrast] = useState(false);
+  // Ref to send quick-action messages into the chat
+  const chatSendRef = useRef(null);
+  // Remount ProgressReport each time dashboard is opened
+  const [dashboardKey, setDashboardKey] = useState(0);
 
+  // Auto-scrolled to top when dashboard is opened
   useEffect(() => {
-    document.documentElement.style.setProperty('--font-scale', fontSize);
-    document.documentElement.setAttribute('data-theme', isContrast ? 'contrast' : 'light');
-  }, [fontSize, isContrast]);
+    if (activeTab === 'dashboard') {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (token) {
       fetchProfile();
+    } else {
+      setLoading(false);
     }
   }, [token]);
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/student/profile', {
+      const response = await fetch('http://localhost:5000/student/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -45,10 +55,13 @@ function App() {
       }
     } catch (err) {
       console.error("Failed to fetch profile", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleLogin = (newToken) => {
+    localStorage.setItem('access_token', newToken);
     setToken(newToken);
   };
 
@@ -58,31 +71,72 @@ function App() {
     setUser(null);
   };
 
+  const handleOnboardingComplete = () => {
+    fetchProfile();
+    setActiveTab('home');
+  };
+
+  if (loading) {
+    return <div className="loading-screen">Preparing your experience...</div>;
+  }
+
   if (!token) {
     return <Auth onLogin={handleLogin} />;
+  }
+
+  if (user && !user.is_onboarded) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
   const userName = user ? user.name : 'Learner';
 
   return (
     <div className="app-shell">
-      <Sidebar 
+      <Navbar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
-        fontSize={fontSize}
-        setFontSize={setFontSize}
-        isContrast={isContrast}
-        setIsContrast={setIsContrast}
-        onLogout={handleLogout}
         userName={userName}
-        setIsDebugOpen={setIsDebugOpen}
+        onLogout={handleLogout}
       />
       
       <main className="main-content">
-        {activeTab === 'dashboard' && <Dashboard userName={userName} />}
-        {activeTab === 'chat' && <ChatInterface setDebugData={setDebugData} />}
+        {activeTab === 'home' && <Home setActiveTab={setActiveTab} />}
+        {activeTab === 'features' && <Features />}
+        {activeTab === 'dashboard' && (
+          <div className="dashboard-layout">
+            <ChatInterface 
+              setDebugData={setDebugData} 
+              chatSendRef={chatSendRef} 
+              onNewChat={() => setDashboardKey(k => k + 1)}
+            />
+            <aside className="insights-sidebar">
+              <div className="insight-card">
+                <h3>Your Learning Style</h3>
+                <p>Based on your activity, you prefer <strong>Step-by-Step</strong> guidance.</p>
+              </div>
+              <div className="insight-card">
+                <h3>Quick Actions</h3>
+                <button
+                  className="quick-action-btn"
+                  onClick={() => chatSendRef.current && chatSendRef.current('Please simplify this lesson so it is easy to understand step by step.')}
+                >📚 Simplify a Lesson</button>
+                <button
+                  className="quick-action-btn"
+                  onClick={() => chatSendRef.current && chatSendRef.current('Please break down this topic into smaller, manageable tasks.')}
+                >✅ Break Down Task</button>
+                <button
+                  className="quick-action-btn"
+                  onClick={() => chatSendRef.current && chatSendRef.current('Give me a short quiz or practice questions on what we just discussed.')}
+                >🧠 Practice Quiz</button>
+              </div>
+              <ProgressReport key={dashboardKey} />
+            </aside>
+          </div>
+        )}
         {activeTab === 'profile' && <Profile onLogout={handleLogout} user={user} />}
       </main>
+
+      {activeTab !== 'dashboard' && <Footer />}
 
       <DebugPanel 
         debugData={debugData} 
@@ -93,5 +147,4 @@ function App() {
   )
 }
 
-
-export default App
+export default App

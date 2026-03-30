@@ -12,7 +12,7 @@ const Auth = ({ onLogin }) => {
     setLoading(true);
 
     const endpoint = isLogin ? '/auth/login' : '/auth/register';
-    const url = `http://127.0.0.1:5000${endpoint}`;
+    const url = `http://localhost:5000${endpoint}`;
 
     try {
       const response = await fetch(url, {
@@ -42,7 +42,12 @@ const Auth = ({ onLogin }) => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <span className="auth-icon">🧠</span>
+          <div className="auth-logo-wrapper">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04Z"/>
+              <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04Z"/>
+            </svg>
+          </div>
           <h1>{isLogin ? 'Welcome Back' : 'Join CogniLearn'}</h1>
           <p>{isLogin ? 'Continue your learning journey' : 'Start your personalized learning path'}</p>
         </div>

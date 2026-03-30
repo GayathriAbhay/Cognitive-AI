@@ -11,3 +11,5 @@ flask-cors
 PyPDF2
 safetensors
 openai
+groq
+pycryptodome

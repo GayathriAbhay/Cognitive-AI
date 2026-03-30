@@ -8,9 +8,15 @@ class Student(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     
+    # New Onboarding Fields
+    age = db.Column(db.Integer)
+    grade = db.Column(db.String(50))
+    interests = db.Column(db.Text)
+    is_onboarded = db.Column(db.Boolean, default=False)
+    
     # Links to Preferences (Section 4.4)
     preferences = db.relationship('Preference', backref='student', uselist=False)
-    sessions = db.relationship('Session', backref='student')
+    sessions = db.relationship('ChatSession', backref='student')
     history = db.relationship('History', backref='student')
 
 class Preference(db.Model):
@@ -22,7 +28,7 @@ class Preference(db.Model):
     input_mode = db.Column(db.String(20), default='text') # [cite: 117]
     difficulty_level = db.Column(db.String(20), default='beginner')
 
-class Session(db.Model):
+class ChatSession(db.Model):
     __tablename__ = 'sessions'
     session_id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('students.student_id'))

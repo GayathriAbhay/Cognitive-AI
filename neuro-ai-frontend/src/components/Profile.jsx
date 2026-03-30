@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const Profile = ({ onLogout }) => {
+const Profile = ({ onLogout, user }) => {
   const [profileType, setProfileType] = useState('default');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -13,8 +13,30 @@ const Profile = ({ onLogout }) => {
   ];
 
   useEffect(() => {
-    // Fetch current settings from backend if needed
-    // For now, setting from local or just keeping default
+    const fetchPreferences = async () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('http://127.0.0.1:5000/student/preferences', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+
+        // Reverse-map backend values → profile card ID
+        if (data.contrast_mode === 'high') {
+          setProfileType('ADHD');
+        } else if (data.input_mode === 'visual') {
+          setProfileType('ASD');
+        } else if (data.input_mode === 'verbal') {
+          setProfileType('Dyslexia');
+        } else {
+          setProfileType('default');
+        }
+      } catch (err) {
+        console.error('Failed to load preferences', err);
+      }
+    };
+    fetchPreferences();
   }, []);
 
   const saveProfile = async (typeId) => {
@@ -55,7 +77,7 @@ const Profile = ({ onLogout }) => {
   return (
     <div className="profile-container">
       <div className="profile-hero">
-        <div className="avatar-large">G</div>
+        <div className="avatar-large">{user?.name?.charAt(0)?.toUpperCase() || 'U'}</div>
         <h1>Settings</h1>
         <p>Personalize your AI learning brain</p>
       </div>
